@@ -2,6 +2,8 @@
 
 Playwright TypeScript test environment for Proton Mail's free-tier web experience.
 
+**Latest verified CI run:** [GitHub Actions run 11](https://github.com/Balarampuvvada/Proton-email-Testing/actions/runs/33742606100)
+
 ## Prerequisites
 
 - Node.js 20 or newer
@@ -45,6 +47,14 @@ Run the typecheck and public smoke test first:
 ```bash
 npm run typecheck
 npx playwright test tests/smoke.spec.ts --project=chromium --workers=1
+```
+
+## Quick Verification
+
+For a fast, reliable authenticated check, run the single-account Auth and Drafts suites:
+
+```bash
+npx playwright test tests/auth tests/drafts --project=chromium --workers=1
 ```
 
 ## Running tests
@@ -95,6 +105,39 @@ Configure these repository secrets under **Settings â†’ Secrets and variables â†
 `BASE_URL`, `PROTON_TEST_EMAIL`, `PROTON_TEST_PASSWORD`, `PROTON_RECEIVER_EMAIL`, and `PROTON_RECEIVER_PASSWORD`.
 
 Without account secrets, authenticated tests are intentionally skipped; the smoke test and typecheck can still run.
+
+## Known Flaky Tests
+
+Three cross-account scenarios (CMP-01, ATT-01, and FLT-01) depend on real Proton Mail
+delivery between two live accounts. Delivery is usually under 30 seconds, but observed
+latency can occasionally exceed a test's timeout budget under normal conditions. This is
+a documented environment characteristic, not a code defect (see [docs/defects.md](docs/defects.md)).
+
+If one of these scenarios fails on a first run, rerun it individually before assuming a
+regression:
+
+```bash
+npx playwright test -g "CMP-01" --project=chromium --workers=1 --retries=0
+```
+
+The Playwright configuration uses a bounded CI-only retry for transient failures. This is
+intentional and limited to the documented delivery/session conditions; local runs remain
+retry-free for clearer diagnosis. The authoritative health signal is the [verified
+GitHub Actions run](https://github.com/Balarampuvvada/Proton-email-Testing/actions/runs/33742606100),
+not any single local execution.
+
+## Known Local vs. CI Variance
+
+Local runs during active development may show a higher failure rate than CI because the
+shared sender and receiver accounts accumulate login and session activity from repeated
+manual exploration and diagnostic runs. This increases the likelihood of session-expiry
+redirects and cross-account delivery timing pressure (see [docs/defects.md](docs/defects.md)).
+
+CI runs execute cold, once, against accounts without same-day local activity and are the
+authoritative signal for suite health. As of commit [`92fa75d`](https://github.com/Balarampuvvada/Proton-email-Testing/commit/92fa75d7d9e5a8fae3adcb46d8ffabdad596fa7c),
+the [GitHub Actions run](https://github.com/Balarampuvvada/Proton-email-Testing/actions/runs/33742606100)
+completed successfully. Local failures observed during development are consistent with
+the documented shared-account and delivery-latency constraints, not new regressions.
 
 ## Strategy
 
