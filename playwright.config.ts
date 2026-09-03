@@ -12,7 +12,7 @@ export default defineConfig({
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
   outputDir: 'test-results',
   use: {
-    baseURL: process.env.BASE_URL ?? 'https://mail.proton.me',
+    baseURL: process.env.BASE_URL || 'https://mail.proton.me',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure'
