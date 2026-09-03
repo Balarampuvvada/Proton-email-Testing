@@ -16,7 +16,24 @@ Record only reproduced observations from the two test accounts. Do not add examp
 - Filter-triggered message delivery exhibits the same delivery-latency behavior observed elsewhere in this suite: FLT-01 successfully created a filter (Name -> Conditions -> Actions -> Preview -> Save all confirmed working) and the triggering send completed, but the receiver did not show the filtered/archived message within the 120-second test budget. Consistent with the CMP-01/ATT-01 findings, this is treated as environment-sensitive delivery timing rather than a filter-logic or selector defect.
 - Recurring pattern across three cross-account scenarios (CMP-01, ATT-01, FLT-01): receiver-side message visibility can exceed even generous 60-120 second polling budgets under this test account's conditions. Cross-account delivery-dependent scenarios are better suited to a nightly/extended-timeout CI tier than fast PR-gating checks.
 
-| ID | Area | Steps and data | Expected | Actual | Evidence | Status |
-| --- | --- | --- | --- | --- | --- | --- |
-| DEF-01 | Compose (CC/BCC) | Fill CC/BCC fields via `getByRole('textbox', { name: 'CC' })` without first clicking the CC/BCC toggle buttons | Field should be fillable directly, or automation should reveal it first | Locator resolves 0 elements before the CC/BCC toggle is clicked | Diagnostic instrumentation and stable test IDs (`composer:recipients:cc-button`, `composer:to-cc`, `composer:recipients:bcc-button`, `composer:to-bcc`) | Resolved |
-| DEF-02 | Inbox / Starred badge | 1. Star 3+ messages across different rows in Inbox. 2. Observe the sidebar Starred folder badge. 3. Compare it with the filled/orange star icons visible in the Inbox list. 4. Open the Starred folder directly and count its contents. | Badge count should equal the number of starred messages | Sidebar badge briefly displayed `1` while the Inbox list simultaneously showed 3 messages with filled star icons: `[3] (No Subject)`, `QA attach-send-receive c431c297`, and `QA inbox-trash-restore fac2fba0`. Opening Starred directly showed the correct matching set. | Screenshot, Inbox view, 2026-09-03 10:15 AM (`balaramreceiver@proton.me`) | Closed — not reproducible; badge briefly lagged behind actual star state before syncing. Underlying Starred data was correct, so this is not classified as a functional defect. |
+### DEF-01 — CC/BCC fields not fillable without first clicking their toggle button
+
+**Environment:** Chromium (Playwright), Windows, desktop viewport, 2026-09-02  
+**Severity:** Low — automation-implementation gap, not a Proton defect; the UI behaves as designed with click-to-reveal fields  
+**Preconditions:** Authenticated sender session with the composer open  
+**Steps to reproduce:** Open the composer and attempt to fill the CC field through a role-based textbox locator without clicking the CC toggle.  
+**Expected vs Actual:** Expected the field to be immediately fillable, or for automation to reveal it first. Actual: the field does not exist in the DOM until the CC toggle is clicked; the `composer:to-cc` test ID appears only afterward.  
+**Evidence:** Diagnostic instrumentation and stable controls: `composer:recipients:cc-button`, `composer:to-cc`, `composer:recipients:bcc-button`, and `composer:to-bcc`  
+**Reproducibility:** Always  
+**Status:** Resolved — `addCc` and `addBcc` now click the relevant toggle before filling.
+
+### DEF-02 — Starred folder sidebar badge count lag
+
+**Environment:** Chromium, Windows, desktop viewport, 2026-09-03 10:15 AM, `balaramreceiver@proton.me`  
+**Severity:** Medium if reproducible — cosmetic/state-sync issue without data loss; downgraded after investigation  
+**Preconditions:** Three or more messages starred across different Inbox rows  
+**Steps to reproduce:** Star three or more messages, observe the sidebar Starred badge, compare it with filled star icons in the Inbox list, then open the Starred folder directly.  
+**Expected vs Actual:** Expected the badge count to match the number of starred messages. Actual: the badge briefly showed `1` while three messages showed filled stars in the Inbox; opening Starred directly showed the correct matching set.  
+**Evidence:** Inbox screenshot from 2026-09-03 10:15 AM  
+**Reproducibility:** Not reproducible — the direct Starred-folder check showed the correct contents, suggesting transient badge-refresh lag rather than incorrect underlying state  
+**Status:** Closed — not classified as a functional defect.
