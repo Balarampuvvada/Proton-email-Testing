@@ -2,15 +2,54 @@
 
 Playwright TypeScript test environment for Proton Mail's free-tier web experience.
 
-## Current status
+## Prerequisites
 
-The project structure and public-site smoke test are ready. Before authenticated automation, manually create two free Proton Mail accounts: one sender and one receiver. Explore login, compose, drafts, inbox actions, search, filters, labels, attachments, and Undo Send with those accounts. Record observed roles, accessible names, iframe boundaries, loading states, and stable selectors before implementing account-dependent page objects.
+- Node.js 20 or newer
+- npm
+- Chromium (installed by the setup commands below)
+- Two separate Proton Mail accounts: one sender and one receiver
 
-Do not commit credentials. Supply `PROTON_TEST_EMAIL`, `PROTON_TEST_PASSWORD`, and `PROTON_RECEIVER_EMAIL` through the local environment or CI secret store. Use placeholders in documentation, for example `PROTON_TEST_EMAIL=your-test-account@proton.me`.
+## Quick start
 
-Copy `.env.example` to `.env`, then enter the sender and receiver values manually. The two accounts should be separate free-tier Proton Mail accounts created for testing. Authenticated specs skip while required values are blank.
+Clone the repository, install dependencies, and copy the environment template:
 
-## Commands
+```bash
+git clone https://github.com/Balarampuvvada/Proton-email-Testing.git
+cd Proton-email-Testing
+npm ci
+cp .env.example .env
+```
+
+On Windows PowerShell, use `Copy-Item .env.example .env` instead of `cp`.
+
+Edit `.env` with the two test accounts:
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `BASE_URL` | No | Mail application URL; defaults to `https://mail.proton.me` |
+| `PROTON_TEST_EMAIL` | Yes for authenticated tests | Sender email address |
+| `PROTON_TEST_PASSWORD` | Yes for authenticated tests | Sender password |
+| `PROTON_RECEIVER_EMAIL` | Yes for cross-account tests | Receiver email address |
+| `PROTON_RECEIVER_PASSWORD` | Yes for receiver login | Receiver password |
+
+Never commit `.env` or real credentials. Authenticated tests skip with a clear message when required values are absent.
+
+Install the browser used by the Playwright project:
+
+```bash
+npx playwright install chromium
+```
+
+Run the typecheck and public smoke test first:
+
+```bash
+npm run typecheck
+npx playwright test tests/smoke.spec.ts --project=chromium --workers=1
+```
+
+## Running tests
+
+Common commands:
 
 ```bash
 npm test
@@ -21,9 +60,31 @@ npm run typecheck
 npm run report
 ```
 
+Run one category or scenario:
+
+```bash
+npx playwright test tests/auth --project=chromium --workers=1
+npx playwright test tests/compose/compose.spec.ts -g "CMP-01" --project=chromium --workers=1 --retries=0
+npx playwright test tests/attachments/attachments.spec.ts -g "ATT-01" --project=chromium --workers=1 --retries=0
+```
+
+Use `--headed` when inspecting the live UI. Use `--ui` for Playwright's interactive runner.
+
 The HTML report is generated in `playwright-report/`. Failure traces, screenshots, and videos are written to `test-results/` according to the Playwright configuration.
 
 The suite currently uses `workers: 1` because the authenticated tests share two real Proton accounts and session state. This is an environment constraint, not a Proton defect. To restore parallel execution as the suite grows, provision separate accounts or per-worker `storageState` fixtures and then remove the global serialization.
+
+## CI
+
+The pull-request workflow is [`.github/workflows/playwright.yml`](.github/workflows/playwright.yml). It installs dependencies and Chromium, runs typecheck, executes the Chromium suite with one worker, and uploads reports/results as artifacts.
+
+The scheduled extended workflow is [`.github/workflows/playwright-nightly.yml`](.github/workflows/playwright-nightly.yml). It runs the delivery-sensitive Compose, Attachments, and Filters suites with a longer job budget.
+
+Configure these repository secrets under **Settings → Secrets and variables → Actions** before expecting authenticated CI coverage:
+
+`BASE_URL`, `PROTON_TEST_EMAIL`, `PROTON_TEST_PASSWORD`, `PROTON_RECEIVER_EMAIL`, and `PROTON_RECEIVER_PASSWORD`.
+
+Without account secrets, authenticated tests are intentionally skipped; the smoke test and typecheck can still run.
 
 ## Strategy
 
