@@ -31,7 +31,7 @@ See [docs/test-strategy.md](docs/test-strategy.md) for scope, assumptions, risks
 
 ## Defects & Findings
 
-See [docs/defects.md](docs/defects.md) for the full log. A Starred-folder badge count mismatch was observed during manual exploratory testing (DEF-02): the sidebar badge undercounted visibly starred messages in the Inbox view.
+See [docs/defects.md](docs/defects.md) for the full log. A transient Starred-folder badge count lag was observed during manual exploratory testing (DEF-02), but direct comparison with the Starred folder showed the correct contents; it is closed as non-reproducible.
 
 ## Reflection
 
