@@ -1,0 +1,2 @@
+Proton Mail QA attachment fixture
+Purpose: deterministic upload and receiver-side download verification.
