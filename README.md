@@ -94,6 +94,30 @@ See [docs/test-strategy.md](docs/test-strategy.md) for scope, assumptions, risks
 
 See [docs/defects.md](docs/defects.md) for the full log. A transient Starred-folder badge count lag was observed during manual exploratory testing (DEF-02), but direct comparison with the Starred folder showed the correct contents; it is closed as non-reproducible.
 
+## Automation Quality Review
+
+### 1. Which tests did you deliberately choose NOT to automate, and why?
+
+Folders & Labels (creation, move, apply/remove), Scheduled Send, and password-protected email were kept manual. Folders/Labels required a focused live-DOM diagnostic on the `toolbar:moveto` menu and folder-creation modal that time did not allow; automating from guessed selectors after prior collision incidents was judged riskier than leaving it manual. Scheduled Send needs either long-running tests or system-time mocking to verify the scheduled state fires correctly, which is disproportionate setup cost for one scenario. Password-protected email is security-sensitive and its secondary-password and recipient-unlock flow outweighs its regression value relative to the core scope. General cosmetic/visual states, including sidebar badge counts and storage banners, were handled through manual exploratory testing; this surfaced the transient DEF-02 observation, which was closed after direct verification.
+
+### 2. Which 5 tests would you run on every pull request? Which would you run nightly?
+
+**Every PR (fast and deterministic):** AUTH-01, AUTH-02, CMP-02, SRC-02, and DFT-02. These use single-account, same-session assertions without real cross-account delivery waits and provide quick signal on core regressions.
+
+**Nightly (cross-account and delivery-sensitive):** CMP-01, ATT-01, FLT-01, INB-01/02/03, and ASY-01. These require a second authenticated context or real message delivery. CMP-01, ATT-01, and FLT-01 have documented delivery variance that can exceed 60–120 seconds, so gating every PR on them would reduce CI trust and slow feedback. The project implements this split in [playwright.yml](.github/workflows/playwright.yml) and [playwright-nightly.yml](.github/workflows/playwright-nightly.yml).
+
+### 3. How would you diagnose a test that passes locally but fails intermittently in CI?
+
+First inspect the CI trace, screenshot, video, console, and network evidence from the uploaded artifacts rather than reproducing blindly. Compare the failure point with a known-good local run, then classify it as selector ambiguity, readiness, test-data collision, session or network instability, or a real regression. This suite used that process to identify the `/send/i` versus `sender` strict-mode collision, shared-account session redirects, and sender-context closure interrupting server-side delivery. Replace arbitrary sleeps with locator assertions and explicit state checks, isolate data by run, and rerun the smallest reproducible test before changing retries.
+
+### 4. How would you reduce test-suite flakiness if the UI changes frequently?
+
+Prefer stable `data-testid` selectors and treat remaining role/name locators as deliberate, reviewed exceptions. Centralize selectors in Page Objects so UI changes require one focused edit. Use live-DOM diagnostic specs before changing selectors, then delete diagnostics after the evidence is captured. Keep explicit readiness assertions, unique generated subjects, bounded polling, and trace-on-retry so failures remain actionable.
+
+### 5. How would you scale this suite from 20 tests to 200+ tests while keeping maintenance manageable?
+
+Introduce `storageState` authentication per role, then provision separate accounts or isolated states per worker so execution can be parallelized instead of relying on `workers: 1`. Add a dedicated fixture and test-data layer with setup and teardown helpers, using API-assisted preparation if the provider exposes it, rather than UI-driven setup for every test. Split smoke, PR-gating, and nightly extended tiers as first-class CI concepts, shard by file, retain traces only for failures, and publish HTML/JUnit results.
+
 ## Reflection
 
 **What belongs in a PR suite versus a nightly suite?** PR checks should stay deterministic and fast: login success/failure, compose/send, missing-recipient validation, draft reopen, one inbox mutation, and basic search. Nightly or extended-timeout checks should cover attachment paths, cross-account propagation, filter and label rules, advanced/date search, CC/BCC, restore flows, Undo Send timing, multiple browsers, and retry-sensitive network paths. This tiering is evidenced by repeated receiver-side delivery latency in CMP-01, ATT-01, and FLT-01, including runs exceeding 60-120 seconds.
