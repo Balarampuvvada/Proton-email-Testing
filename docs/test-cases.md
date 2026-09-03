@@ -20,7 +20,7 @@ Prerequisite for authenticated cases: sender and receiver free-tier accounts exi
 | FIL-01 | Filters | Filter settings accessible | Create filter for unique subject token | Subject token + target folder | Filter saves successfully | P2 | Automate |
 | FIL-02 | Filters | Filter exists | Send matching message; inspect destination | Unique subject | Message follows filter action | P2 | Automate |
 | LAB-01 | Labels/Folders | Test message exists | Apply and remove label | Unique subject + label | Label state is correct | P2 | Automate |
-| LAB-02 | Labels/Folders | Test message exists | Move to folder and back | Unique subject + folder | Message appears in intended folder | P2 | Manual initially |
+| LAB-02 | Labels/Folders | Test message exists; folder creation and `toolbar:moveto` menu controls need live verification | Create a folder; move a message into it and back | Unique subject + folder | Message appears in the intended folder and returns to Inbox | P2 | Manual initially — excluded from automation until folder-creation and move-menu selectors are confirmed |
 | ATT-01 | Attachments | Sender logged in | Compose; upload fixture; send | `sample-attachment.txt` | Upload completes and message sends | P1 | Automate |
 | ATT-02 | Attachments | Receiver gets ATT-01 | Open message; download attachment; inspect file | Fixture file | Downloaded contents match fixture | P1 | Automate |
 | ASY-01 | Async | Undo Send behavior observed | Send; activate Undo Send notification | Unique subject | Send is cancelled and receiver does not get message | P1 | Automate |

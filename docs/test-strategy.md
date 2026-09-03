@@ -19,12 +19,14 @@ P0 protects account access and message integrity. P1 covers core daily mail acti
 
 Automate repeatable, deterministic journeys with clear assertions and useful failure evidence. Keep exploratory UX, CAPTCHA/security challenges, visual nuance, and one-off provider behavior manual. Use explicit locator-based readiness checks, isolated subjects, and trace-on-retry rather than fixed delays.
 
+Folder creation and arbitrary folder movement remain manual initially: direct archive/trash/restore coverage is automated, while the folder-creation UI and `toolbar:moveto` menu require a focused live-DOM pass before adding stable selectors.
+
 ## Execution order
 
 1. Manually create and explore sender and receiver accounts.
 2. Implement and stabilize P0 Auth and Compose journeys.
 3. Add P1 Drafts, Inbox, Search, Attachments, and Undo Send coverage.
-4. Add P2 Filters and Labels/Folders after observing their real controls and synchronization behavior.
+4. Add P2 Filters and Labels/Folders after observing their real controls and synchronization behavior; keep LAB-02 manual until folder creation and move-menu behavior are confirmed.
 5. Run the fast PR subset on every change and the broader cross-account suite nightly.
 
 ## Completion criteria
