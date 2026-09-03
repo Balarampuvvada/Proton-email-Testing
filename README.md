@@ -72,6 +72,16 @@ Use `--headed` when inspecting the live UI. Use `--ui` for Playwright's interact
 
 The HTML report is generated in `playwright-report/`. Failure traces, screenshots, and videos are written to `test-results/` according to the Playwright configuration.
 
+## Viewing Test Reports
+
+After running the suite, open the interactive HTML report:
+
+```bash
+npx playwright show-report
+```
+
+A static copy is generated at `playwright-report/index.html` after each run. The report is git-ignored locally and uploaded as a CI artifact by both the PR and nightly workflows. Open the relevant workflow run in GitHub's **Actions** tab and download the report from **Artifacts** to review execution results and failures.
+
 The suite currently uses `workers: 1` because the authenticated tests share two real Proton accounts and session state. This is an environment constraint, not a Proton defect. To restore parallel execution as the suite grows, provision separate accounts or per-worker `storageState` fixtures and then remove the global serialization.
 
 ## CI
