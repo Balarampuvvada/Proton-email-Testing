@@ -75,6 +75,11 @@ export class ComposePage extends ProtonPage {
     await this.sendButton.click();
   }
 
+  async undoSend(): Promise<void> {
+    await this.page.getByTestId('notification:undo-button').click({ timeout: 15000 });
+    await expect(this.page.locator('[role="alert"]').filter({ hasText: 'Sending undone' })).toBeVisible({ timeout: 10000 });
+  }
+
   async closeAndSaveDraft(): Promise<void> {
     await this.closeButton.click();
   }
