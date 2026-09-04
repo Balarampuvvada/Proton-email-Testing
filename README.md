@@ -110,8 +110,11 @@ Without account secrets, authenticated tests are intentionally skipped; the smok
 
 Three cross-account scenarios (CMP-01, ATT-01, and FLT-01) depend on real Proton Mail
 delivery between two live accounts. Delivery is usually under 30 seconds, but observed
-latency can occasionally exceed a test's timeout budget under normal conditions. This is
-a documented environment characteristic, not a code defect (see [docs/defects.md](docs/defects.md)).
+latency can occasionally exceed a test's timeout budget under normal conditions. In the
+latest isolated runs, ATT-01 did not show the received message within its 60-second poll,
+and FLT-01 spent its 120-second budget waiting for the receiver Archive view to become
+ready. These are documented environment characteristics, not code defects (see
+[docs/defects.md](docs/defects.md)).
 
 If one of these scenarios fails on a first run, rerun it individually before assuming a
 regression:
